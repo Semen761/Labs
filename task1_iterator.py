@@ -1,19 +1,4 @@
-class Countdown:
-    def __init__(self, n):
-        self.n = n
-    
-    def __iter__(self):
-        self.current = self.n
-        return self
-    
-    def __next__(self):
-        if self.current == 0:
-            raise StopIteration
-        value = self.current
-        self.current -= 1
-        return value
+squares = [x**2 for x in range(1, 11)]
 
-print("=== Countdown ===")
-for x in Countdown(5):
-    print(x, end=' ')
-print("\n")
+print("Список квадратов чисел от 1 до 10:")
+print(squares)
