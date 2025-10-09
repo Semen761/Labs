@@ -1,5 +1,5 @@
 from datetime import date
-birth_date = date(1995, 8, 20)
+birth_date = date(2005, 12, 13)
 today = date.today()
 days_passed = (today - birth_date).days
 next_birthday = date(today.year, birth_date.month, birth_date.day)
