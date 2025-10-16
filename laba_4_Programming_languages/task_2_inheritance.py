@@ -25,7 +25,6 @@ class Bike(Transport):
     def __str__(self):
         return f"Bike: {self.brand}, Speed: {self.speed}, Type: {self.type}"
 
-# Проверка
 if __name__ == "__main__":
     car = Car("Toyota", 120, 5)
     bike = Bike("Giant", 25, "mountain")
