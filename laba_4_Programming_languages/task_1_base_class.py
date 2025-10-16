@@ -10,8 +10,8 @@ class Transport:
     def __str__(self):
         return f"Transport: {self.brand}, Speed: {self.speed}"
 
-# Проверка пусть будет
+# Проверка
 if __name__ == "__main__":
-    t = Transport("Audi", 100)
+    t = Transport("", 100)
     print(t)
     t.move()
