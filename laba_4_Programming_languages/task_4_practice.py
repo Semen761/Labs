@@ -14,7 +14,7 @@ class Car(Transport):
         return f"Машина {self.brand} со скоростью {self.speed} км/ч"
     
     def __len__(self):
-        return self.seats  # Теперь len() будет работать!
+        return self.seats 
     
     def __eq__(self, other):
         if isinstance(other, Car):

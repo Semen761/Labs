@@ -12,6 +12,6 @@ class Transport:
 
 # Проверка
 if __name__ == "__main__":
-    t = Transport("", 100)
+    t = Transport(" Audi ", 100)
     print(t)
     t.move()
