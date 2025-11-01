@@ -78,7 +78,37 @@ def add_expense(category, amount, description="", custom_date=None):
         print(f"❌ Ошибка добавления расхода: {e}")
         return None, str(e)
 
-def get_expenses_by_period(period):
+def delete_expense(expense_id):
+    try:
+        data = load_data()
+        if not data:
+            return False, "Нет данных для удаления"
+        
+        # Ищем запись для удаления
+        found = False
+        new_data = []
+        for item in data:
+            if item["id"] == expense_id:
+                found = True
+            else:
+                new_data.append(item)
+        
+        if found:
+            # Пересчитываем ID чтобы не было пропусков
+            for i, item in enumerate(new_data, 1):
+                item["id"] = i
+            
+            save_data_json(new_data)
+            save_data_csv(new_data)
+            return True, None
+        else:
+            return False, f"Запись с ID {expense_id} не найдена"
+            
+    except Exception as e:
+        print(f"❌ Ошибка удаления расхода: {e}")
+        return False, str(e)
+
+def get_expenses_by_period(period, category=None):
     try:
         data = load_data()
         if not data:
@@ -88,6 +118,11 @@ def get_expenses_by_period(period):
         filtered_data = []
         
         for item in data:
+            # Фильтрация по категории
+            if category and item["category"] != category:
+                continue
+                
+            # Фильтрация по периоду
             item_date = datetime.fromisoformat(item['timestamp'])
             
             if period == 'day' and item_date.date() == now.date():
@@ -100,6 +135,17 @@ def get_expenses_by_period(period):
         return filtered_data
     except Exception as e:
         print(f"❌ Ошибка фильтрации по периоду: {e}")
+        return []
+
+def get_all_categories():
+    try:
+        data = load_data()
+        categories = set()
+        for item in data:
+            categories.add(item["category"])
+        return sorted(list(categories))
+    except Exception as e:
+        print(f"❌ Ошибка получения категорий: {e}")
         return []
 
 def get_all_expenses():

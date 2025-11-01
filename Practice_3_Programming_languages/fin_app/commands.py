@@ -13,12 +13,41 @@ def add_command(category, amount, description="", date=None):
         print(f"❌ Ошибка выполнения команды добавления: {e}")
         return False
 
-def show_command(period='all'):
+def delete_command(expense_id):
     try:
-        data = storage.get_expenses_by_period(period)
+        success, error = storage.delete_expense(expense_id)
+        if not success:
+            print(error if error else "❌ Не удалось удалить расход")
+        return success
+    except Exception as e:
+        print(f"❌ Ошибка выполнения команды удаления: {e}")
+        return False
+
+def show_categories_command():
+    try:
+        categories = storage.get_all_categories()
+        if not categories:
+            print("📭 Категорий нет")
+            return
+        
+        print("\n🏷️  ВСЕ КАТЕГОРИИ:")
+        print("-" * 30)
+        for i, category in enumerate(categories, 1):
+            print(f"{i}. {category}")
+        print(f"\nВсего категорий: {len(categories)}")
+        
+    except Exception as e:
+        print(f"❌ Ошибка показа категорий: {e}")
+
+def show_command(period='all', category=None):
+    try:
+        data = storage.get_expenses_by_period(period, category)
         
         if not data:
-            print(f"📭 Записей за {period} нет")
+            if category:
+                print(f"📭 Записей за {period} в категории '{category}' нет")
+            else:
+                print(f"📭 Записей за {period} нет")
             return
         
         period_names = {
@@ -27,7 +56,11 @@ def show_command(period='all'):
             'all': 'ВСЕ'
         }
         
-        print(f"\n📋 РАСХОДЫ ЗА {period_names[period]}:")
+        if category:
+            print(f"\n📋 РАСХОДЫ ЗА {period_names[period]} (категория: {category}):")
+        else:
+            print(f"\n📋 РАСХОДЫ ЗА {period_names[period]}:")
+        
         print("-" * 50)
         
         total = 0
@@ -39,7 +72,10 @@ def show_command(period='all'):
             print()
             total += item['amount']
         
-        print(f"💰 ИТОГО за {period_names[period]}: {total} руб.")
+        if category:
+            print(f"💰 ИТОГО за {period_names[period]} в категории '{category}': {total} руб.")
+        else:
+            print(f"💰 ИТОГО за {period_names[period]}: {total} руб.")
         
     except Exception as e:
         print(f"❌ Ошибка показа расходов: {e}")
