@@ -1,0 +1,37 @@
+Добавить расход
+python3 main.py --add "еда" --sum 250
+
+Показать за день
+python3 main.py --show day
+
+Показать за месяц  
+python3 main.py --show month
+
+Показать все
+python3 main.py --show all
+
+Отчет за день
+python3 main.py --report day
+
+Отчет за месяц
+python3 main.py --report month
+
+Отчет за все время
+python3 main.py --report all
+
+# Добавить на конкретную дату
+python3 main.py --add "кино" --sum 300 --date 2024-01-15
+
+# Посмотреть все записи чтобы узнать ID
+python3 main.py --show all
+
+# Удалить запись с ID 1
+python3 main.py --delete 1
+
+# Показать расходы только категории "еда"
+python3 main.py --category "еда"
+
+# Показать все категории
+python3 main.py --categories
+
+python3 fix_data.py

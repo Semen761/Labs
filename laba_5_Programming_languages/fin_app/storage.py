@@ -1,0 +1,224 @@
+"""
+Модуль работы с данными.
+
+Обеспечивает сохранение, загрузку и манипуляцию данными о расходах
+в различных форматах (JSON, CSV).
+"""
+
+import json
+import os
+import csv
+from datetime import datetime, timedelta
+
+FILE_NAME_JSON = "money.json"
+FILE_NAME_CSV = "money.csv"
+
+
+def save_data_json(data):
+    """Сохраняет данные в JSON файл.
+
+    Args:
+        data (list): Список данных для сохранения
+    """
+    try:
+        with open(FILE_NAME_JSON, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"❌ Ошибка сохранения JSON: {e}")
+
+
+def save_data_csv(data):
+    """Сохраняет данные в CSV файл.
+
+    Args:
+        data (list): Список данных для сохранения
+    """
+    try:
+        if data:
+            # Берем только основные поля для CSV
+            csv_data = []
+            for item in data:
+                csv_item = {
+                    "id": item["id"],
+                    "category": item["category"],
+                    "amount": item["amount"],
+                    "date": item["date"]
+                }
+                csv_data.append(csv_item)
+            
+            with open(FILE_NAME_CSV, 'w', encoding='utf-8', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=csv_data[0].keys())
+                writer.writeheader()
+                writer.writerows(csv_data)
+    except Exception as e:
+        print(f"❌ Ошибка сохранения CSV: {e}")
+
+
+def load_data():
+    """Загружает данные из JSON файла.
+
+    Returns:
+        list: Список расходов или пустой список при ошибке
+    """
+    try:
+        if os.path.exists(FILE_NAME_JSON):
+            with open(FILE_NAME_JSON, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return []
+    except Exception as e:
+        print(f"❌ Ошибка загрузки данных: {e}")
+        return []
+
+
+def add_expense(category, amount, description="", custom_date=None):
+    """Добавляет новый расход.
+
+    Args:
+        category (str): Категория расхода
+        amount (float): Сумма расхода
+        description (str, optional): Описание расхода. По умолчанию "".
+        custom_date (str, optional): Дата в формате 'ГГГГ-ММ-ДД'. По умолчанию None.
+
+    Returns:
+        tuple: (dict, str) - добавленный расход и сообщение об ошибке (если есть)
+    """
+    try:
+        data = load_data()
+        
+        if custom_date:
+            # Парсим пользовательскую дату
+            try:
+                date_obj = datetime.strptime(custom_date, "%Y-%m-%d")
+                date_str = date_obj.strftime("%Y-%m-%d %H:%M")
+                timestamp = date_obj.isoformat()
+            except ValueError:
+                return None, "❌ Неправильный формат даты. Используйте: ГГГГ-ММ-ДД"
+        else:
+            # Используем текущую дату
+            date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+            timestamp = datetime.now().isoformat()
+        
+        new_item = {
+            "id": len(data) + 1,
+            "category": category,
+            "amount": amount,
+            "description": description,
+            "date": date_str,
+            "timestamp": timestamp
+        }
+        
+        data.append(new_item)
+        save_data_json(data)
+        save_data_csv(data)
+        return new_item, None
+    except Exception as e:
+        print(f"❌ Ошибка добавления расхода: {e}")
+        return None, str(e)
+
+
+def delete_expense(expense_id):
+    """Удаляет расход по ID.
+
+    Args:
+        expense_id (int): ID расхода для удаления
+
+    Returns:
+        tuple: (bool, str) - успех операции и сообщение об ошибке (если есть)
+    """
+    try:
+        data = load_data()
+        if not data:
+            return False, "Нет данных для удаления"
+        
+        # Ищем запись для удаления
+        found = False
+        new_data = []
+        for item in data:
+            if item["id"] == expense_id:
+                found = True
+            else:
+                new_data.append(item)
+        
+        if found:
+            # Пересчитываем ID чтобы не было пропусков
+            for i, item in enumerate(new_data, 1):
+                item["id"] = i
+            
+            save_data_json(new_data)
+            save_data_csv(new_data)
+            return True, None
+        else:
+            return False, f"Запись с ID {expense_id} не найдена"
+            
+    except Exception as e:
+        print(f"❌ Ошибка удаления расхода: {e}")
+        return False, str(e)
+
+
+def get_expenses_by_period(period, category=None):
+    """Получает расходы за указанный период и/или категорию.
+
+    Args:
+        period (str): Период ('day', 'month', 'all')
+        category (str, optional): Фильтр по категории. По умолчанию None.
+
+    Returns:
+        list: Список отфильтрованных расходов
+    """
+    try:
+        data = load_data()
+        if not data:
+            return []
+        
+        now = datetime.now()
+        filtered_data = []
+        
+        for item in data:
+            # Фильтрация по категории
+            if category and item["category"] != category:
+                continue
+                
+            # Фильтрация по периоду
+            item_date = datetime.fromisoformat(item['timestamp'])
+            
+            if period == 'day' and item_date.date() == now.date():
+                filtered_data.append(item)
+            elif period == 'month' and item_date.month == now.month and item_date.year == now.year:
+                filtered_data.append(item)
+            elif period == 'all':
+                filtered_data.append(item)
+        
+        return filtered_data
+    except Exception as e:
+        print(f"❌ Ошибка фильтрации по периоду: {e}")
+        return []
+
+
+def get_all_categories():
+    """Получает все уникальные категории расходов.
+
+    Returns:
+        list: Отсортированный список категорий
+    """
+    try:
+        data = load_data()
+        categories = set()
+        for item in data:
+            categories.add(item["category"])
+        return sorted(list(categories))
+    except Exception as e:
+        print(f"❌ Ошибка получения категорий: {e}")
+        return []
+
+
+def get_all_expenses():
+    """Получает все расходы.
+
+    Returns:
+        list: Список всех расходов
+    """
+    try:
+        return load_data()
+    except Exception as e:
+        print(f"❌ Ошибка загрузки всех данных: {e}")
+        return []
